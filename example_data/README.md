@@ -1,7 +1,7 @@
 # Example data
 
 Mock data in the formats the pipeline expects. Identifiers, labels and features are
-synthetic. The five patients are enough to run every step of stages 1 and 2 end to end, but
+synthetic. The five patients are enough to run every step of modules 1 and 2 end to end, but
 not to produce meaningful metrics.
 
 ## Contents
