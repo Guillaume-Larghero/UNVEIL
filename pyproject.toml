@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "unveil"
+version = "1.0.0"
+description = "Statistical analysis for the UNVEIL study of demographic signal in computational pathology"
+requires-python = ">=3.8"
+dependencies = [
+    "numpy>=1.22",
+    "pandas>=1.5",
+    "scipy>=1.9",
+    "statsmodels>=0.14",
+    "pyyaml>=6.0",
+]
+
+[tool.setuptools]
+packages = ["unveil"]

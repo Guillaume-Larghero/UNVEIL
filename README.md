@@ -1,205 +1,251 @@
 # UNVEIL: Uncovering Non-apparent Visual Encodings in Latent Space
 
-Kao TW et al. _Demographic Differences in Tissue Architecture Drive Disparities in Pathology AI Performance._ 
+Kao TW et al. _Demographic Differences in Tissue Architecture Drive Disparities in Pathology AI Performance._
 
-This repository implements UNVEIL, a framework for identifying, quantifying, and mitigating demographic-associated signals in pathology foundation model representations. By integrating demographic classification, nuclear morphometric analysis, and demographic signal-aware agentic scheduling, UNVEIL addresses performance disparities in computational pathology tasks.
+UNVEIL identifies, attributes and mitigates demographic signal in pathology foundation-model
+representations. It detects the signal with demographic classifiers, measures the disparities
+it produces in pathology tasks, attributes those disparities to nuclear morphology, cell
+composition and model attention, and removes the signal from training bags with an
+agentically discovered tile filter.
 
-## Overview
+## Stages
 
-Pathology foundation models encode demographic-linked morphological variations during training, which can contribute to performance disparities across population groups. UNVEIL provides a systematic approach to:
+| Stage | Folder | Purpose |
+| --- | --- | --- |
+| 1 | `01_demographic_classifier` | Predict age, sex and race from slide tile features |
+| 2 | `02_pathology_task_prediction` | Attention-MIL models for mutation, subtype, grade, stage and tumor detection |
+| 3 | `03_fairness_evaluation` | Six fairness metrics with bias tests across demographic groups, and the paired baseline-versus-mitigated comparison |
+| 4a | `04_morphologic_correlates_of_demographic_signal/4a_nuclear_morphology` | Exposure associations with nuclear morphology features, pooled across cohorts |
+| 4b | `04_morphologic_correlates_of_demographic_signal/4b_cell_composition` | Exposure effects on cell-type composition and nuclear density |
+| 4c | `04_morphologic_correlates_of_demographic_signal/4c_model_attention` | Exposure effects on the attention-weighted cell composition of task models |
+| 4d | `04_morphologic_correlates_of_demographic_signal/4d_morphology_error_decomposition` | Decomposition of prediction disparities through morphology features |
+| 5 | `05_demographic_signal_agentic_modulation` | LLM-guided search for a tile filter that removes demographic signal, the frozen filter, its matched controls and training masks |
 
-1. Detect demographic signals in learned representations through demographic attribute classification
-2. Quantify the contribution of demographic-associated features to downstream task performance disparities
-3. Mitigate disparities using demographic signal-aware agentic scheduling that adaptively modulates patch contributions
-
-### Framework Workflow
-
-```
-WSI Patches → Foundation Model Encoding → Attention-Based MIL Aggregation
-                                                          ↓
-                                    ┌─────────────────────┴──────────────────────┐
-                                    ↓                                             ↓
-                        Demographic Classifier                    Downstream Task Model
-                     (Age, Race, Sex prediction)              (Mutation prediction, etc.)
-                                    |                                             ↓
-                                    |                                   Fairness Evaluation
-                                    |                                             ↓
-                                    └────────────────→  Demographic Signal-Aware Agentic Scheduling
-                                                        (Adaptive patch contribution modulation)
-```
-
-The framework operates in three stages:
-
-1. **Demographic Signal Detection**: Train classifiers to predict demographic attributes (age, race, sex) from WSI representations, quantifying the extent of demographic information encoded in foundation model features.
-
-2. **Fairness Assessment**: Train downstream task models (mutation prediction as exemplar) and evaluate performance disparities across demographic groups, linking disparities to demographic-predictive signals through attention mapping and nuclear morphometric analysis.
-
-3. **Disparity Mitigation**: Apply demographic signal-aware agentic scheduling that uses multi-factor routing to selectively modulate patches most strongly associated with demographic signals, reducing performance gaps while maintaining overall predictive accuracy.
-
-## Repository Structure
-
-```
-.
-├── demographic_classifier/          # Demographic attribute prediction
-│   ├── configs/                     # Configuration examples
-│   ├── run.py                       # Main entry point
-│   ├── run.sh                       # Execution wrapper
-│   ├── experiment_runner.py         # Training orchestration
-│   ├── dataset.py                   # Feature dataset loaders
-│   └── model.py                     # MLP classifier architectures
-│
-├── mutation_prediction/             # Downstream task pipeline (mutation prediction exemplar)
-│   ├── configs/                     # Dataset and attribute mapping configurations
-│   ├── main_genetic.py              # Main training script
-│   ├── dataset.py                   # Dataset loading and preprocessing
-│   ├── network.py                   # Attention-based MIL architectures
-│   ├── demographic_agent.py         # Base demographic-aware filtering agent
-│   ├── unified_demographic_agent.py # Multi-factor routing implementation
-│   ├── run_baseline.sh              # Standard training without demographic awareness
-│   └── run_agentic.sh               # Training with demographic signal-aware scheduling
-│
-├── example_data/                    # Mock data demonstrating required formats
-│   ├── demographic_classifier/      # Demographic classification data
-│   ├── mutation_prediction/         # Exemplar downstream task data
-│   └── README.md                    # Detailed data format specifications
-│
-├── requirements.txt                 # Python dependencies for all components
-└── LICENSE                          # GNU AFFERO GENERAL PUBLIC LICENSE v3.0
-```
-
-## Data Requirements
-
-### Input Data Format
-
-Both components require:
-
-1. **WSI Feature Embeddings** (`.pt` files): Pre-extracted patch-level features from foundation models
-   - Format: `{'features': torch.Tensor}` with shape `(N_patches, feature_dim)`
-   - Supported dimensions: CHIEF (768), UNI (1024), GIGAPATH (1536), VIRCHOW2 (2560)
-
-2. **Metadata Files**:
-   - **Demographic Classifier**: JSON files mapping slide IDs to demographic categories
-   - **Mutation Prediction**: TCGA Pan-Cancer Atlas structure with clinical metadata and mutation status
-
-### Example Data
-
-Mock example data is provided in `example_data/` to demonstrate required formats:
-- 5 mock WSI feature files with CHIEF embeddings (768-dim)
-- Clinical metadata and mutation status files for BRCA
-- Demographic label files (age, race, sex)
-- Example configuration file for demographic classifier
-
-See `example_data/README.md` for detailed specifications and instructions for generating mock data.
-
+Shared statistics live in the `unveil` package: covariate design, effect sizes, mixed and
+penalized models, permutation tests, meta-analysis, multiplicity control and fairness metrics.
+`configs/analysis.yaml` declares the exposures and covariates used by stages 3 and 4.
+`tests/` checks the statistics against brute-force or reference implementations.
 
 ## Installation
 
-### Prerequisites
-- Python 3.8+
-- CUDA-capable GPU (recommended)
-- SLURM cluster environment (for batch jobs)
-
-### Setup
-
 ```bash
-# Clone repository
-git clone <repository_url>
-cd HiddenFeature_Bao_new_github
-
-# Create environment
 conda create -n unveil python=3.8
 conda activate unveil
-
-# Install dependencies
 pip install -r requirements.txt
-
-# Create output directories
-mkdir -p output/{mutation_models,mutation_models_agentic,demographic_classifier}
-mkdir -p logs/{train_TCGA_mutation,demographic_agentic}
+pip install -e .
+pytest tests
 ```
+
+## Data conventions
+
+Every table is keyed by `cohort`, `cancer` and `patient_id`. Slide tables add `slide_id` and
+prediction tables add `task`. Tile features are one tensor per slide, `<slide_id>.pt`, of
+shape `(n_tiles, feature_dim)`.
+
+The clinical table holds one row per patient with the exposures and covariates named in
+`configs/analysis.yaml`. Covariates are grouped into three blocks, published here under proxy
+names:
+
+| Block | Columns | Examples of what they stand for |
+| --- | --- | --- |
+| technical | `technical_cov1` to `technical_cov4` | tissue source site, scanner, stain batch, slide type |
+| biological | `biological_cov1`, `biological_cov2` | histologic subtype, tumor purity |
+| demographic | `age`, `sex`, `race` | |
+
+Rename your columns or edit the spec to match. Columns listed under `categorical_covariates`
+are encoded as indicators; rare levels are pooled into `other` and missing values become
+their own level. Columns listed under `random_intercept` are modelled as random intercepts
+where a script supports it.
+
+Three defaults apply to every analysis in stage 4:
+
+- Analyses are adjusted for all three blocks. The exposure being tested is always removed
+  from its own adjustment set. `--adjust technical biological` restricts the blocks and
+  `--adjust none` gives the unadjusted analysis.
+- Slide-level inputs are averaged to the patient before testing, except where a patient
+  random intercept models the slides directly (4b).
+- Benjamini-Hochberg q-values are computed within broad families, such as all features of
+  one exposure contrast in one cohort. The family is printed in every output and can be
+  changed with `--fdr-family`.
+
+Categorical exposures are tested as pairwise contrasts against the reference level, for
+example `male_vs_female` or `black_vs_white`. Continuous exposures enter linearly. In 4d
+they are contrasted between their 10th and 90th percentiles, and in 3 they are split at the
+patient median.
 
 ## Usage
 
-### I: Train Demographic Classifier
+The commands below run from the repository root.
 
-Train classifiers to detect demographic signals in foundation model representations:
-
-```bash
-cd demographic_classifier
-./run.sh configs/example_train.json
-```
-
-**Key configuration parameters**:
-- `train_targets_file_path_list`: Paths to demographic label JSON files
-- `features_dir_path_list`: Directories containing WSI feature `.pt` files
-- `model_init_args.input_dim`: Feature dimension matching foundation model
-- `model_init_args.output_dim`: Number of demographic categories
-
-Output: Trained classifiers saved in specified `save_dir` with performance metrics.
-
-### II: Train Downstream Task Models and Assess Fairness
-
-Train mutation prediction models (or other pathology tasks) and evaluate performance across demographic groups:
-
-#### Baseline (No Demographic Awareness)
+### 1. Demographic classifier
 
 ```bash
-cd mutation_prediction
-sbatch run_baseline.sh
+cd 01_demographic_classifier && ./run.sh configs/example_train.json
 ```
 
-This runs standard attention-based MIL training across all 31 cancer types without demographic-aware filtering.
+### 2. Pathology task prediction
 
-**Key parameters** (edit in `run_baseline.sh`):
-- `FOUNDATION_MODEL`: Feature extractor (CHIEF, UNI, GIGAPATH, VIRCHOW2)
-- `SENSITIVE`: Demographic attribute to track (age, race, sex)
-- `cancer`: Cancer type (lowercase abbreviation)
-
-Output: Models and performance metrics saved in `./output/mutation_models/{ATTRIBUTE}/{DATA_SOURCE}/{FOUNDATION_MODEL}/{SLIDE_TYPE}/`
-
-### III: Apply Demographic Signal-Aware Agentic Scheduling
-
-Mitigate performance disparities using adaptive patch filtering:
+`build_task_manifest.py` turns one task into a slide manifest with a patient-level fold.
+Labels come from a 0/1 mutation table, a clinical column mapped through
+`configs/tasks.yaml` (grade, stage, subtype, receptor status), or the TCGA sample type
+(tumor detection). Folds come from a released split, a fixed clinical column, or a
+patient-grouped stratified split.
 
 ```bash
-cd mutation_prediction
-sbatch run_agentic.sh
+python 02_pathology_task_prediction/build_task_manifest.py \
+    --cohort TCGA --cancer BRCA --task PIK3CA \
+    --features-dir example_data/features \
+    --mutation-table example_data/pathology_task_prediction/mutations/PIK3CA.csv \
+    --clinical example_data/pathology_task_prediction/clinical.csv --fold-column kfold_partition \
+    --output output/manifest.csv
+
+python 02_pathology_task_prediction/train.py --manifest output/manifest.csv --output-dir output/baseline
 ```
 
-The demographic classifier from Stage I provides per-patch attention scores indicating demographic signal strength. During mutation model training, the agent dynamically selects between signal-leveraging filtering (filters patches with high demographic signals) and random filtering (demographic signal unreliable) based on demographic prediction correctness, model reliability, group imbalance, and training progress. All decisions use only training data statistics, ensuring no data leakage.
+For each test fold k, the patients of fold k+1 form the validation set and the remaining
+folds form the training set. Training follows the study recipe:
 
-Output: Models saved in `./output/mutation_models_agentic/{ATTRIBUTE}/TCGA/{FOUNDATION_MODEL}/FS/agent_demographic_agentic/` with agent decision logs.
+- class-weighted cross-entropy, Adam at 1e-4 with step decay 0.955, batch 16 with two
+  accumulation steps;
+- at most 2000 randomly drawn tiles per training bag;
+- up to 100 epochs, stopping after 10 epochs without improvement in patient-level
+  validation AUC.
 
+`predictions.csv` holds the out-of-fold slide probabilities and is the input of stages 3
+and 4. `predict.py` scores an external cohort or a released checkpoint.
+`run_cross_validation.sh` wraps the manifest, baseline and masked training steps for a job
+scheduler.
 
-## Output Structure
+### 3. Fairness evaluation
 
-```
-output/
-├── mutation_models/                          # Baseline models
-│   └── {ATTRIBUTE}/{DATA_SOURCE}/{FOUNDATION_MODEL}/{SLIDE_TYPE}/
-│       └── {CANCER}_{GENE}/
-│           ├── checkpoint_best.pt            # Best model weights
-│           ├── results.csv                   # Performance metrics
-│           └── inference_results_fold{N}.csv # Per-fold predictions
-│
-├── mutation_models_agentic/                  # Agentic scheduling models
-│   └── {ATTRIBUTE}/TCGA/{FOUNDATION_MODEL}/FS/agent_demographic_agentic/
-│       └── {CANCER}_{GENE}/
-│           ├── checkpoint_best.pt
-│           ├── results.csv
-│           ├── inference_results_fold{N}.csv
-│           └── agent_logs/                   # Routing decision logs
-│
-└── demographic_classifier/
-    └── {save_dir}/
-        ├── configs.json                      # Configuration
-        ├── best_model.pt                     # Trained classifier
-        └── metrics/                          # Performance metrics
+```bash
+python 03_fairness_evaluation/evaluate_fairness.py --predictions output/baseline/predictions.csv \
+    --clinical clinical.csv --output fairness.csv --group-output group_performance.csv
+
+python 03_fairness_evaluation/compare_models.py --baseline output/baseline/predictions.csv \
+    --mitigated output/signal_aware/predictions.csv --clinical clinical.csv --output comparison.csv
 ```
 
+AUC, TPR, TNR and balanced accuracy are computed in every demographic group. Each disparity
+is the best group minus the worst group, or with `--privileged-reference` the reference level
+minus the worst other group:
+
+| Metric | Disparity in |
+| --- | --- |
+| `EOpp0` | TNR |
+| `EOpp1` | TPR |
+| `EBAcc` | balanced accuracy |
+| `EOddAbs` | mean of the absolute TPR and TNR disparities (derived) |
+| `EOddMax` | larger of the absolute TPR and TNR disparities (derived) |
+| `AUCDiff` | AUC |
+
+Continuous exposures are split at the patient median. Categorical exposures compare all
+levels with at least `min_group_size` patients, and `--pairwise` adds each level against the
+reference. Units are patients, or patient and label pairs when a patient contributes both
+tumor and normal slides.
+
+- The bias test keeps each patient's group and redraws outcome and prediction pairs into the
+  group slots, with replacement (`--null bootstrap`, the study default) or without
+  (`--null permutation`), within `--stratify-by` levels if given. The one-sided p-value is the
+  share of null disparities at least as large as the observed one.
+- Intervals come from a patient bootstrap within groups.
+- `--group-output` lists per-group performance with intervals, and the overall AUC with a
+  bootstrap test against 0.5.
+- The comparison reports each disparity under both models, the paired bootstrap interval of
+  the change, and a p-value from swapping the two models' predictions within patients.
+- Benjamini-Hochberg q-values are computed per cohort, exposure, contrast and metric, across
+  cancers and tasks.
+
+### 4a. Nuclear morphology
+
+```bash
+python 04_morphologic_correlates_of_demographic_signal/4a_nuclear_morphology/1_test_associations.py \
+    --features morphology.csv --clinical clinical.csv --output associations.csv
+python 04_morphologic_correlates_of_demographic_signal/4a_nuclear_morphology/2_pool_cohorts.py \
+    --associations associations.csv --output pooled.csv
+python 04_morphologic_correlates_of_demographic_signal/4a_nuclear_morphology/3_test_enrichment.py \
+    --results pooled.csv --annotations feature_annotations.csv --output enrichment.csv
+```
+
+Every numeric column of the morphology table that is not an identifier is treated as a
+feature.
+
+- The adjusted effect is a partial correlation on normal scores, with complete-case
+  covariates per feature.
+- `--unadjusted` adds Cliff's delta (binary exposures) or Spearman's rho (continuous
+  exposures).
+- Cohorts are pooled on the Fisher z scale with DerSimonian-Laird random effects. The
+  pooling also reports Hartung-Knapp intervals, prediction intervals and leave-one-cohort-out
+  robustness.
+- Enrichment of significant features in cell type by feature group categories is tested by
+  permuting the category labels.
+
+### 4b. Cell composition
+
+```bash
+python 04_morphologic_correlates_of_demographic_signal/4b_cell_composition/test_composition.py \
+    --slides composition.csv --clinical clinical.csv \
+    --components tumor lymphocyte stroma necrosis --n-tiles-column n_tiles --output composition_effects.csv
+```
+
+- Counts are closed and centred log-ratio transformed with multiplicative zero replacement.
+- Each component is modelled at slide level with a patient random intercept, and checked at
+  patient level with a Freedman-Lane permutation test.
+- `--omnibus-output` adds a multivariate PERMANOVA and a dispersion test.
+
+### 4c. Model attention
+
+```bash
+python 04_morphologic_correlates_of_demographic_signal/4c_model_attention/1_build_attention_composition.py \
+    --tiles attention_tiles.csv --components tumor lymphocyte stroma necrosis \
+    --predictions output/baseline/predictions.csv --output attention_composition.csv
+python 04_morphologic_correlates_of_demographic_signal/4c_model_attention/2_test_attention_composition.py \
+    --attention attention_composition.csv --clinical clinical.csv \
+    --components tumor lymphocyte stroma necrosis --output attention_effects.csv --omnibus-output attention_omnibus.csv
+```
+
+The attention-weighted composition is tested with the 4b model, per task by default
+(`--stratify-by`), on the centred log-ratio scale. Passing `--predictions` adds
+`prediction_correct`, so attention can also be compared between correct and incorrect
+predictions with `--exposures prediction_correct`.
+
+### 4d. Morphology-error decomposition
+
+```bash
+python 04_morphologic_correlates_of_demographic_signal/4d_morphology_error_decomposition/1_build_patient_outcomes.py \
+    --predictions output/baseline/predictions.csv --output outcomes.csv
+python 04_morphologic_correlates_of_demographic_signal/4d_morphology_error_decomposition/2_decompose_disparity.py \
+    --outcomes-table outcomes.csv --mediators morphology.csv --clinical clinical.csv --output decomposition.csv
+python 04_morphologic_correlates_of_demographic_signal/4d_morphology_error_decomposition/3_test_and_pool.py \
+    --decomposition decomposition.csv --output decomposition_tested.csv --pooled-output decomposition_pooled.csv
+```
+
+The outcomes are the logit of the patient score and the logit of the Brier error. For each
+morphology feature, the exposure effect on an outcome is split by interventional
+g-computation into an indirect effect through the feature and a direct effect. The
+decomposition also reports the controlled direct effect, the interaction components and the
+label-dependent indirect effect.
+
+- The models include a label by mediator term and a random intercept for the
+  `random_intercept` covariates.
+- Inference uses a patient bootstrap.
+- Indirect effects are tested against the composite null with the HDMT procedure before
+  Benjamini-Hochberg correction.
+- `--chunk` and `--n-chunks` split the features across a job array.
+
+### 5. Demographic-signal agentic modulation
+
+An LLM rewrites a tile-filter program; each candidate is scored by how much demographic
+classifier AUC it removes beyond a random removal of the same size, penalised for the task
+AUC it removes beyond the same baseline. The winner is frozen and used to mask training bags.
+See `05_demographic_signal_agentic_modulation/README.md` for the search, the frozen filter
+and its dose-matched controls.
+
+## Model weights
+
+The trained baseline and signal-aware task models are released separately because of their
+size.
 
 ## License
 
-This project is licensed under the GNU Affero General Public License Version 3.0. See the [LICENSE](LICENSE) file for details.
-
-
+GNU Affero General Public License v3.0. See `LICENSE`.

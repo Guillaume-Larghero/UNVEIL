@@ -1,0 +1,68 @@
+grade:
+  column: grade
+  positive: high
+  labels:
+    G1: low
+    G2: low
+    G3: high
+    G4: high
+
+stage:
+  column: ajcc_pathologic_stage
+  positive: late
+  labels:
+    Stage I: early
+    Stage IA: early
+    Stage IA1: early
+    Stage IA2: early
+    Stage IA3: early
+    Stage IB: early
+    Stage IC: early
+    Stage II: early
+    Stage IIA: early
+    Stage IIB: early
+    Stage IIC: early
+    Stage III: late
+    Stage IIIA: late
+    Stage IIIB: late
+    Stage IIIC: late
+    Stage IV: late
+    Stage IVA: late
+    Stage IVB: late
+
+subtype_brca:
+  column: primary_diagnosis
+  positive: lobular
+  labels:
+    Infiltrating Ductal Carcinoma: ductal
+    Infiltrating duct carcinoma, NOS: ductal
+    Infiltrating Lobular Carcinoma: lobular
+    Lobular carcinoma, NOS: lobular
+
+subtype_nsclc:
+  column: cancer
+  positive: LUSC
+  labels:
+    LUAD: LUAD
+    LUSC: LUSC
+
+er_status:
+  column: er_status_by_ihc
+  positive: Positive
+  labels:
+    Positive: Positive
+    Negative: Negative
+
+pr_status:
+  column: pr_status_by_ihc
+  positive: Positive
+  labels:
+    Positive: Positive
+    Negative: Negative
+
+her2_status:
+  column: her2_status_by_ihc
+  positive: Positive
+  labels:
+    Positive: Positive
+    Negative: Negative

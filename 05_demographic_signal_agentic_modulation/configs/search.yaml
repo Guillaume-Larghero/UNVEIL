@@ -1,0 +1,51 @@
+max_iterations: 200
+checkpoint_interval: 1
+random_seed: 0
+diff_based_evolution: true
+max_code_length: 10000
+
+llm:
+  api_base: https://api.openai.com/v1
+  api_key: ${OPENAI_API_KEY}
+  models:
+    - name: gpt-5
+      weight: 1.0
+  temperature: 0.7
+  timeout: 600
+  retries: 3
+
+prompt:
+  system_message: >
+    You improve drop_scores(attention, tile_score, slide_pred) for one whole-slide image.
+    attention is a demographic classifier's attention over tiles, tile_score its per-tile
+    demographic probability, slide_pred its slide-level probability. Return a drop score
+    per tile and a drop fraction. The highest-scoring tiles are removed, capped at 33% of
+    the slide and never below max(64, 5%) tiles kept. The fitness rewards removing more
+    demographic signal than a random removal of the same size, and penalises removing
+    pathology-task information beyond that same baseline. Use numpy only; keep it
+    deterministic; do not read files, labels or any other state.
+  num_top_programs: 3
+  num_diverse_programs: 2
+
+database:
+  population_size: 60
+  archive_size: 20
+  num_islands: 3
+  elite_selection_ratio: 0.1
+  exploitation_ratio: 0.7
+
+evaluator:
+  timeout: 86400
+  parallel_evaluations: 1
+  cascade_evaluation: false
+
+search:
+  cells: cells.example.csv
+  eps: null
+  lam: null
+  demographic_level: slide
+  task_level: patient
+  max_dose: 0.33
+  min_cells: 3
+  min_tasks: 1
+  control_seed: 0
