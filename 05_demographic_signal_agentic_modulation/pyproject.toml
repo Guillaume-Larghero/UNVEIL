@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "unveil_tilefilter"
+version = "1.0.0"
+description = "UNVEIL adaptive demographic tile filter: signal, masks, training adapters, resolution rule"
+readme = "README.md"
+requires-python = ">=3.8"
+dependencies = ["numpy", "pandas"]
+
+[project.optional-dependencies]
+signal = ["torch"]
+h5 = ["h5py"]
+fairtune = ["pyyaml"]
+test = ["torch", "pyyaml", "h5py"]
+
+[project.scripts]
+unveil-tilefilter = "unveil_tilefilter.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+unveil_tilefilter = ["fairtune_tested_pins.json"]

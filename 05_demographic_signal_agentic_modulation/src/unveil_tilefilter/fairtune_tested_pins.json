@@ -1,0 +1,17 @@
+{
+  "_note": "sha256 of the collaborators' fairtune_pipeline as this adapter was written and tested against it (the version every training run in the paper used; its files are dated 2026-08-10 to 2026-08-16). 'sources' are the five callables the adapter depends on, hashed over inspect.getsource; a difference in any of them stops a run unless --allow-upstream-drift is given. 'files' are recorded in each run's record for provenance only.",
+  "files": {
+    "configs/train_configs.yaml": "24156077c36debcbfa36277f08423a10a5329ea970f6da85b4c3b30137f5ae31",
+    "dataset.py": "1e39eb28d1ff598931804f79492c2d4e109220e465855162e5b7532b97fb2ba3",
+    "framework.py": "45b316642109f28ddf652df1c1b45e9523a558449fceb766870d640e19f75538",
+    "main.py": "85818b3782533318c3a53064a5bbe3bfb8e0c9bd9276f0f9c57cee2aa24d6e06",
+    "main_genetic.py": "484517443033142efd447a4e6bf5b401a782255847208bc247d4616797f69fda"
+  },
+  "sources": {
+    "dataset:CancerDataset.__getitem__": "db6dcc8f4da5a251d8b713ab0f5c49ef5df639e5d0dcbebe03d18e982ca3f6ea",
+    "dataset:CancerDataset.__init__": "74cb74d524ecf5119e7fa079d0b5c604b37d6dcd777320551223ba93a4a7eed0",
+    "dataset:ReweightDataset": "e627ab68754e10588c8c33aaf185c37af9bec8079930270a6c5ebc2ed22b148f",
+    "dataset:get_datasets": "44b2ab45d46afd8527372c57f12fbff3aedfb03aa3c2f2d07799727fdbf96025",
+    "framework:should_emit_reweight_suffix": "50904e90bd30288c8a92ee65e1b66068f8e529f9d3c8bc236dbc8da69095221a"
+  }
+}

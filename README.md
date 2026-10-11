@@ -19,7 +19,7 @@ agentically discovered tile filter.
 | 4b | `04_morphologic_correlates_of_demographic_signal/4b_cell_composition` | Exposure effects on cell-type composition and nuclear density |
 | 4c | `04_morphologic_correlates_of_demographic_signal/4c_model_attention` | Exposure effects on the attention-weighted cell composition of task models |
 | 4d | `04_morphologic_correlates_of_demographic_signal/4d_morphology_error_decomposition` | Decomposition of prediction disparities through morphology features |
-| 5 | `05_demographic_signal_agentic_modulation` | LLM-guided search for a tile filter that removes demographic signal, the frozen filter, its matched controls and training masks |
+| 5 | `05_demographic_signal_agentic_modulation` | `unveil_tilefilter`: the agentically discovered tile filter, its matched controls, training-bag masking and the resolution rule |
 
 Shared statistics live in the `unveil` package: covariate design, effect sizes, mixed and
 penalized models, permutation tests, meta-analysis, multiplicity control and fairness metrics.
@@ -235,11 +235,26 @@ label-dependent indirect effect.
 
 ### 5. Demographic-signal agentic modulation
 
-An LLM rewrites a tile-filter program; each candidate is scored by how much demographic
-classifier AUC it removes beyond a random removal of the same size, penalised for the task
-AUC it removes beyond the same baseline. The winner is frozen and used to mask training bags.
-See `05_demographic_signal_agentic_modulation/README.md` for the search, the frozen filter
-and its dose-matched controls.
+For each training slide, the demographic classifier scores which tiles carry the most
+evidence for the slide's demographic group, and the 33% of tiles that score highest are
+removed before the task model is trained. Validation, test and external slides are never
+filtered. The scoring rule was found by an LLM-driven evolutionary search (OpenEvolve) on
+TCGA development tasks and then locked.
+
+```bash
+pip install -e 05_demographic_signal_agentic_modulation
+unveil-tilefilter signal --features-dir example_data/features --checkpoint demographic_classifier.pt \
+    --model-code 01_demographic_classifier --out signals/
+unveil-tilefilter masks --signals signals/ --out masks/adaptive.npz
+python 02_pathology_task_prediction/train.py --manifest output/manifest.csv \
+    --output-dir output/signal_aware --tile-masks masks/adaptive.npz
+```
+
+`--filter random_matched` and `--filter attention_matched` build the two controls, which
+remove the same number of tiles from each slide. `unveil-tilefilter resolve` applies the
+paper's rule for whether a run resolves a biased task. See
+`05_demographic_signal_agentic_modulation/README.md` for the filter, the `fairtune_pipeline`
+adapter and the verification against the paper's files.
 
 ## Model weights
 
