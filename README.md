@@ -258,7 +258,7 @@ python 03_fairness_evaluation/compare_models.py --baseline output/baseline/predi
     --mitigated output/signal_aware/predictions.csv --clinical clinical.csv --output comparison.csv
 ```
 
-AUC, TPR, TNR and balanced accuracy are computed in every demographic group. Each disparity
+AUC, TPR, TNR, balanced accuracy and accuracy are computed in every demographic group. Each disparity
 is the best group minus the worst group, or with `--privileged-reference` the reference
 level minus the worst other group:
 
@@ -268,7 +268,7 @@ level minus the worst other group:
 | `EOpp1` | TPR |
 | `EBAcc` | balanced accuracy |
 | `EOddAbs` | mean of the absolute TPR and TNR disparities |
-| `EOddMax` | larger of the absolute TPR and TNR disparities |
+| `ACCDiff` | accuracy |
 | `AUCDiff` | AUC |
 
 - **Groups:** continuous exposures are split at the patient median. Categorical exposures

@@ -4,9 +4,9 @@ import numpy as np
 import pandas as pd
 from scipy.stats import rankdata
 
-METRICS = ("EOpp0", "EOpp1", "EBAcc", "EOddAbs", "EOddMax", "AUCDiff")
-DERIVED_METRICS = ("EOddAbs", "EOddMax")
-GROUP_METRICS = ("AUC", "TPR", "TNR", "BAcc")
+METRICS = ("EOpp0", "EOpp1", "EBAcc", "EOddAbs", "ACCDiff", "AUCDiff")
+DERIVED_METRICS = ("EOddAbs",)
+GROUP_METRICS = ("AUC", "TPR", "TNR", "BAcc", "ACC")
 OVERALL_METRICS = ("AUC_overall", "BAcc_overall")
 PATIENT_KEYS = ["cohort", "cancer", "task", "patient_id"]
 
@@ -59,7 +59,7 @@ def _rates(y, score, pred):
     positive = y == 1
     tpr = pred[positive].mean() if positive.any() else np.nan
     tnr = 1 - pred[~positive].mean() if (~positive).any() else np.nan
-    return auc(y, score), tpr, tnr, (tpr + tnr) / 2
+    return auc(y, score), tpr, tnr, (tpr + tnr) / 2, (pred == y).mean()
 
 
 def _group_matrix(y, score, pred, group, levels):
@@ -74,8 +74,8 @@ def _disparities(matrix, levels, privileged):
         else:
             i = list(levels).index(privileged)
             best, worst = matrix[i], np.nanmin(np.delete(matrix, i, axis=0), axis=0)
-    d_auc, d_tpr, d_tnr, d_bacc = best - worst
-    return np.array([d_tnr, d_tpr, d_bacc, (abs(d_tnr) + abs(d_tpr)) / 2, np.maximum(abs(d_tnr), abs(d_tpr)), d_auc])
+    d_auc, d_tpr, d_tnr, d_bacc, d_acc = best - worst
+    return np.array([d_tnr, d_tpr, d_bacc, (abs(d_tnr) + abs(d_tpr)) / 2, d_acc, d_auc])
 
 
 def _metric_vector(y, score, pred, group, levels, privileged):
