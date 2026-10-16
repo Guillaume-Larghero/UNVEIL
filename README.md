@@ -275,10 +275,11 @@ level minus the worst other group:
   compare all levels with at least `min_group_size` patients, and `--pairwise` adds each
   level against the reference.
 - **Bias test:** each patient keeps its group while outcome and prediction pairs are redrawn
-  into the group slots, with replacement (`--null bootstrap`, the study default) or without
-  (`--null permutation`). The one-sided p-value is the share of null disparities at least as
-  large as the observed one.
-- **Intervals:** a patient bootstrap within groups.
+  into the group slots within outcome classes, without replacement (`--null permutation
+  --stratify-by label`, the study default: 2,000 permutations of demographic labels within
+  outcome classes) or with replacement (`--null bootstrap`). The one-sided p-value is the
+  share of null disparities at least as large as the observed one.
+- **Intervals:** a patient bootstrap within groups, 2,000 resamples.
 - **Comparison:** each disparity under both models, the paired bootstrap interval of the
   change, and a p-value from swapping the two models' predictions within patients.
 - **Multiplicity:** Benjamini-Hochberg q-values per cohort, exposure, contrast and metric,

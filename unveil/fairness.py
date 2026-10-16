@@ -113,11 +113,12 @@ def _within(blocks, rng, replace):
     return drawn
 
 
-def bias_test(y, score, pred, group, cluster, n_boot, rng, privileged=None, null="bootstrap", strata=None):
+def bias_test(y, score, pred, group, cluster, n_boot, rng, privileged=None, null="permutation", strata=None):
     """One-sided p-value that each disparity is larger than expected with no group effect.
 
     Patient slots keep their group label while the outcomes filling them are redrawn,
-    with replacement ("bootstrap", the FAIR-Tuning null) or without ("permutation").
+    without replacement ("permutation", the study null, within `strata` such as the outcome
+    class) or with replacement ("bootstrap").
     """
     levels = np.unique(group)
     observed, _ = _metric_vector(y, score, pred, group, levels, privileged)

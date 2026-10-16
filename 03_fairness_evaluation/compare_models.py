@@ -48,7 +48,7 @@ def main():
     parser.add_argument("--privileged-reference", action="store_true")
     parser.add_argument("--pairwise", action="store_true")
     parser.add_argument("--min-group-size", type=int, default=None)
-    parser.add_argument("--n-boot", type=int, default=1000, help="swap permutations and bootstrap replicates")
+    parser.add_argument("--n-boot", type=int, default=2000, help="swap permutations and bootstrap replicates")
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--fdr-family", nargs="+", default=list(FDR_FAMILY))
     parser.add_argument("--output", required=True)
