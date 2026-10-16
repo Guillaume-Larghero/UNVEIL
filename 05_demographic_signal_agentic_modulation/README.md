@@ -224,7 +224,8 @@ paired test, so it applies the fairness half exactly and a margin for the AUROC 
   be non-significant and present; `--p-rule gt` asks for p > alpha instead;
 - **keeps AUROC:** AUROC − baseline AUROC ≥ −`--auroc-margin` (0.02), computed in that
   order in floating point.
-  - The baseline is the task's unmitigated model on the same split.
+  - The baseline is the task's original unmitigated model, the one the biased tasks were
+    selected on.
   - The margin is a threshold, not a significance test; use `compare_models.py` for the
     paired test.
 
@@ -339,7 +340,7 @@ The `eq_fairtune` checks:
 - `ReweightDataset` is filtered too;
 - the census assertion fails when tampered with.
 
-The folders that both parsers refuse are the collaborators' split-0 adversarial-debiasing
+The folders that both parsers refuse are the collaborators' original adversarial-debiasing
 runs with error keys left by an earlier attempt. `eq_resolve.py --manifest` reads each one
 at its source folder in the collaborators' tree, which keeps the original file times, and
 `--ignore-error-keys` admits all 28 there.
