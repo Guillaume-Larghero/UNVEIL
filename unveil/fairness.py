@@ -166,7 +166,8 @@ def auroc_test(y, score, n_boot, rng):
 
 
 def paired_swap_test(y, group, cluster, models, n_perm, rng, privileged=None):
-    """Two-sided p-value for the change between two models, swapping their predictions within patients."""
+    """Change between two models with its two-sided p-value and the one-sided (lower-tail)
+    p-value that the change is not below zero, swapping the models' predictions within patients."""
     levels = np.unique(group)
     (score_a, pred_a), (score_b, pred_b) = models
     observed = _metric_vector(y, score_b, pred_b, group, levels, privileged)[0] - _metric_vector(y, score_a, pred_a, group, levels, privileged)[0]
@@ -179,5 +180,8 @@ def paired_swap_test(y, group, cluster, models, n_perm, rng, privileged=None):
         null[k] = second - first
     valid = np.isfinite(null)
     exceed = (np.abs(null) >= np.abs(observed) - 1e-12) & valid
+    lower = (null <= observed + 1e-12) & valid
     p = (exceed.sum(axis=0) + 1) / (valid.sum(axis=0) + 1)
-    return observed, np.where(np.isfinite(observed), p, np.nan)
+    p_lower = (lower.sum(axis=0) + 1) / (valid.sum(axis=0) + 1)
+    finite = np.isfinite(observed)
+    return observed, np.where(finite, p, np.nan), np.where(finite, p_lower, np.nan)

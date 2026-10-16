@@ -66,6 +66,7 @@ def test_paired_swap_test_on_identical_models_finds_no_change():
     group = rng.integers(0, 2, 80)
     score = rng.normal(size=80) + y
     pred = (score > 0.5).astype(int)
-    change, p = paired_swap_test(y, group, np.arange(80), [(score, pred), (score, pred)], 50, rng)
+    change, p, p_lower = paired_swap_test(y, group, np.arange(80), [(score, pred), (score, pred)], 50, rng)
     assert np.allclose(change, 0)
     assert np.allclose(p, 1)
+    assert np.allclose(p_lower, 1)

@@ -391,10 +391,11 @@ evolutionary search (OpenEvolve) on TCGA development tasks and then locked.
 
 - `--filter random_matched` and `--filter attention_matched` build the two controls, which
   remove the same number of tiles from each slide at random or by attention alone.
-- `unveil-tilefilter resolve` applies the paper's rule for whether a mitigated run resolves a
-  biased task.
-- The mitigated predictions are compared with the baseline using `compare_models.py`
-  (module 3).
+- A biased task is resolved when the mitigated model no longer shows a significant EOddAbs
+  disparity and its AUROC is not significantly lower than the baseline's by a paired
+  permutation test: the `resolved` column of `compare_models.py` (module 3).
+  `unveil-tilefilter resolve` scores `fairtune_pipeline` run folders with the same fairness
+  criterion and an AUROC margin.
 
 See `05_demographic_signal_agentic_modulation/README.md` for the exact filter, the
 `fairtune_pipeline` adapter and the verification against the paper's files.

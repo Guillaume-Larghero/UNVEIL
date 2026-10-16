@@ -210,19 +210,23 @@ unveil-tilefilter resolve --table runs.csv --out resolved.csv   # many runs:
     # runs.csv columns: name, run_dir, baseline_dir or baseline_auroc
 ```
 
-The tool reads the latest complete run in each task folder: the pipeline's
-`<k>_bootstrapTest_concatenate_*.csv` files and `<k>_run_status.json`. A run **resolves** a
-biased task when both of these hold:
+The study's rule: a biased task is **resolved** when the mitigated model no longer shows a
+significant EOddAbs disparity and its AUROC is not significantly lower than the baseline's
+by a paired permutation test. On patient-level predictions this is
+`03_fairness_evaluation/compare_models.py` (column `resolved`).
 
-- **fair:** every fairness metric's bias-test p-value is ≥ `--alpha` (0.05), and all of
-  them are present;
-  - the metrics are EOpp0, EOpp1, EOddAbs, EOddMax, EBAcc and AUCDiff (`--metrics`);
-  - `--p-rule gt` asks for p > alpha instead;
+This tool scores `fairtune_pipeline` task folders instead: the latest complete run's
+`<k>_bootstrapTest_concatenate_*.csv` files and `<k>_run_status.json`. Those files hold no
+paired test, so it applies the fairness half exactly and a margin for the AUROC half:
+
+- **fair:** the EOddAbs bias-test p-value is ≥ `--alpha` (0.05); `--metrics` adds the
+  pipeline's other metrics (EOpp0, EOpp1, EBAcc, AUCDiff, ACC_diff), all of which must then
+  be non-significant and present; `--p-rule gt` asks for p > alpha instead;
 - **keeps AUROC:** AUROC − baseline AUROC ≥ −`--auroc-margin` (0.02), computed in that
-  order in floating point, as in the paper's code.
-  - The paper's baseline is the task's unmitigated model on the split the biased tasks
-    were selected on (split 0).
-  - The margin is a threshold, not a significance test.
+  order in floating point.
+  - The baseline is the task's unmitigated model on the same split.
+  - The margin is a threshold, not a significance test; use `compare_models.py` for the
+    paired test.
 
 **Failed folds.** A run whose status record shows a failed fold is not scored. The pipeline
 catches a fold's training error, goes on to the next fold and still writes a complete

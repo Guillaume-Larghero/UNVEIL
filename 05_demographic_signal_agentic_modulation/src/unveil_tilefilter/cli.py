@@ -211,8 +211,9 @@ def main(argv=None):
     r.add_argument("--table", default=None,
                    help="CSV with run_dir and baseline_dir or baseline_auroc (and name)")
     r.add_argument("--metrics", default=None,
-                   help="comma-separated fairness metrics (default "
-                        "EOpp0,EOpp1,EOddAbs,EOddMax,EBAcc,AUCDiff)")
+                   help="comma-separated fairness metrics that must all be non-significant "
+                        "(default EOddAbs, the study's rule; the pipeline also writes "
+                        "EOpp0,EOpp1,EBAcc,AUCDiff,ACC_diff)")
     r.add_argument("--alpha", type=float, default=0.05)
     r.add_argument("--p-rule", default="ge", choices=["ge", "gt"],
                    help="ge: fair if every p >= alpha; gt: every p > alpha")
