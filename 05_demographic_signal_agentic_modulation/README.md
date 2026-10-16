@@ -320,15 +320,14 @@ how many.
 
 ## Verification
 
-These were run on 2026-10-10, on the paper's own files. The logs are in
-`verification/logs/`.
+These were run on 2026-10-10, on the paper's own files.
 
 | Check | Result |
 |---|---|
 | `tests/run_all.py`: unit and integration tests, with no data needed | 7 files, 44 tests: all pass |
 | `verification/eq_masks.py`: every mask file in the reproduction package, rebuilt from the paper's signals with default parameters | 107 of 107 files identical: 102,851 slides |
 | `verification/eq_signals.py`: stored signals recomputed with the paper's classifiers, in the environment that made them | 30 of 30 slides identical: 3 classifiers, 10 slides each |
-| `verification/eq_resolve.py`: every run folder of the reproduction package, parsed by this package and by the paper's own code | 1,629 folders: 1,601 scored by both, 28 refused by both, 0 disagreements |
+| `verification/eq_resolve.py`: every run folder of the reproduction package, parsed by this package and by the paper's own code (the pre-revision six-metric rule, passed explicitly) | 1,629 folders: 1,601 scored by both, 28 refused by both, 0 disagreements |
 | `verification/eq_fairtune.py`: the adapter on the real `fairtune_pipeline` | 22 of 22 checks pass |
 
 The `eq_fairtune` checks:
@@ -367,7 +366,7 @@ src/unveil_tilefilter/
   resolve.py    step 4: the resolution rule
   cli.py        the unveil-tilefilter command
 tests/          run_all.py and seven test files (no data needed)
-verification/   eq_*.py checks against the paper's files, their logs, README.md
+verification/   eq_*.py checks against the paper's files, README.md
 reference/      filters_locked_c844fcf6.py, the paper's locked filter file
 examples/       own_pipeline.py and toy_models.py, a synthetic end-to-end example
 ```
