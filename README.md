@@ -154,9 +154,11 @@ Mock example data is provided in `example_data/` to demonstrate the required for
 - Clinical metadata and mutation status files for BRCA
 - Demographic label files (age, race, sex)
 - A trained PIK3CA attention-MIL checkpoint
+- Synthetic patient tables for modules 3 and 4 (`example_data/analysis/`), with a spec whose
+  thresholds fit 160 patients
 
-See `example_data/README.md` for detailed specifications and the commands that run
-modules 1 and 2 on it.
+See `example_data/README.md` for detailed specifications and the commands that run every
+module on it.
 
 ## Installation
 
