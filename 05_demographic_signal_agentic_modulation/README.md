@@ -63,9 +63,12 @@ For every slide this writes `<out>/<folder_id>.npz` with:
   if the run covers every slide in it.
 
 **Options:**
-- **Model.** `--model-code` is put on `sys.path` so the pickled model can be loaded.
-  `--checkpoint-key` names the entry that holds the model (default `model`; `''` for a bare
-  object).
+- **Model.** `--model-code` is put on `sys.path` so the model's class can be found. The
+  released classifiers are plain state_dicts: `--model-config` gives the JSON with
+  `model_type` (a class of the `model` module in `--model-code`, or `module:Class`) and
+  `model_init_args`, and the weights load with `weights_only=True`. A pickled checkpoint
+  loads without it; `--checkpoint-key` then names the entry that holds the model (default
+  `model`; `''` for a bare object).
 - **Default adapter (`gated_abmil`).** It expects `deep_attention.theta1/theta2/W/temperature`,
   an `mlp` ending in a sigmoid, and `input_dim`.
 - **Any other model:** pass `--adapter mymodule:myfunction`, where

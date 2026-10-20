@@ -26,7 +26,7 @@ included or modified; obtain the FMs from their authors under their own licenses
 
 | Group | Contents | Count | Purpose in the study |
 | --- | --- | --- | --- |
-| Demographic classifiers | one gated ABMIL classifier per cancer type × attribute (age group, self-reported race, sex) × slide type (frozen section FS, permanent FFPE section PM); the FM and the cross-validation fold selected in the paper | 38 | quantify demographic signal in FM representations (module 1); provide the per-tile demographic signal that the tile filter of module 5 uses |
+| Demographic classifiers | one gated ABMIL classifier per cancer type × attribute (age group, self-reported race, sex) × slide type (frozen section FS, permanent FFPE section PM); the FM and the cross-validation fold selected in the paper | 31 files for 38 cells | the per-tile demographic signal that the tile filter of module 5 uses |
 | Baseline task models | ABMIL checkpoints per task × FM × fold, trained on TCGA with patient-level four-fold cross-validation, with the fold assignments | [N] | downstream pathology prediction (module 2); the baselines of the fairness, morphology and mitigation analyses (modules 3 to 5) |
 
 **Not released:** the signal-aware (mitigated) task models, which module 5 retrains from the
@@ -76,12 +76,16 @@ existing published methods; the foundation models.
 | LUSC | Sex | FS | UNI | 8 | balanced accuracy |
 | LUSC | Sex | PM | UNI | 8 | balanced accuracy |
 
-Files are named `demographic_classifiers/<cancer>_<attribute>_<slide type>_<FM>.pt`. Each is
-the fold model of the paper's ten-fold TCGA cross-validation that was selected for that
-cell (fold and selection metric above); these are the classifiers whose per-tile signal the
-tile filter of module 5 used. The classifier of one cell was applied to the task models of
-all four FMs, so it need not share the task model's FM. **[Wan: are the classifiers of the
-other cells of Tables S2 to S4, e.g. COAD/READ sex and the other FMs, released too?]**
+Files are `demographic_classifiers/<cancer>_<attribute>_<FM>_fold<k>.pt`, a plain PyTorch
+state_dict (no optimizer state, loadable with `weights_only=True`), with `<same>.json`
+(`model_type`, `model_init_args` and the training settings) and `<same>.split.json` (the
+TCGA patient barcodes of that fold's train, validation and test sets). `cells.csv` maps each
+of the 38 cells to its file; where the FS and PM cells selected the same fold model, one
+file serves both, hence 31 files. Each is the fold model of the paper's ten-fold TCGA
+cross-validation selected for that cell (fold and selection metric above): the classifiers
+whose per-tile signal the tile filter of module 5 used. The classifier of one cell was
+applied to the task models of all four FMs, so it need not share the task model's FM.
+Classifiers of the other FMs in Tables S2 to S4 are not released.
 
 ### Baseline task models
 
@@ -166,7 +170,8 @@ python 02_pathology_task_prediction/predict.py --manifest manifest.csv \
 
 # per-tile demographic signal from a demographic classifier (module 5)
 unveil-tilefilter signal --features-dir features/ --model-code 01_demographic_classifier \
-    --checkpoint weights/demographic_classifiers/BRCA_Race_FS_VIRCHOW2.pt --out signals/
+    --checkpoint weights/demographic_classifiers/BRCA_Race_VIRCHOW2_fold2.pt \
+    --model-config weights/demographic_classifiers/BRCA_Race_VIRCHOW2_fold2.json --out signals/
 ```
 
 Feature files are `<slide_id>.pt` tensors of shape `(n_tiles, feature_dim)`; see the

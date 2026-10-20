@@ -40,6 +40,7 @@ def cmd_signal(a):
 
     m = compute_signals(a.features_dir, a.checkpoint, a.out, code_dirs=a.model_code,
                         checkpoint_key=a.checkpoint_key, adapter=a.adapter,
+                        model_config=a.model_config,
                         feature_ext=a.feature_ext, h5_key=a.h5_key,
                         slides=_read_list(a.slides), chunk=a.chunk, threads=a.threads,
                         dtype=a.dtype, activation=a.activation, overwrite=a.overwrite)
@@ -134,7 +135,10 @@ def main(argv=None):
     s.add_argument("--model-code", action="append", default=[],
                    help="directory with the classifier's Python code (repeatable)")
     s.add_argument("--checkpoint-key", default="model",
-                   help="key of the model object in the saved dict; '' for a bare object")
+                   help="key of the model object in a pickled checkpoint; '' for a bare object")
+    s.add_argument("--model-config", default=None,
+                   help="JSON with model_type and model_init_args: the checkpoint is then a "
+                        "plain state_dict (the released classifiers)")
     s.add_argument("--adapter", default="gated_abmil",
                    help="gated_abmil, or module:function returning "
                         "(attention, tile_score, slide_pred) for (model, x)")

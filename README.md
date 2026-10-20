@@ -378,14 +378,16 @@ from training slides:
 
 ```bash
 unveil-tilefilter signal --features-dir example_data/features --checkpoint demographic_classifier.pt \
-    --model-code 01_demographic_classifier --out signals/
+    --model-config demographic_classifier.json --model-code 01_demographic_classifier --out signals/
 unveil-tilefilter masks --signals signals/ --out masks/adaptive.npz
 python 02_pathology_task_prediction/train.py --manifest output/manifest.csv \
     --output-dir output/signal_aware --tile-masks masks/adaptive.npz
 ```
 
 The demographic classifier from module 1 provides, for every tile, its attention and its
-probability of the slide's demographic group. Each tile is scored by this evidence weighted
+probability of the slide's demographic group. The released classifiers are plain
+state_dicts with a JSON config naming the model class and its arguments (`--model-config`);
+a checkpoint pickled by module 1 loads without it. Each tile is scored by this evidence weighted
 by its attention rank, and the 33% highest-scoring tiles of each training slide are removed,
 always keeping at least 64 tiles. Validation, test and external slides are never filtered,
 so the model is evaluated on whole slides. The scoring rule was discovered by an LLM-driven
