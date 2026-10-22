@@ -433,7 +433,7 @@ output/
 
 ## Model Weights
 
-The trained models are released on Hugging Face: **[HF_REPO_URL]** (weights under CC BY-NC
+The trained models are released on Hugging Face: https://huggingface.co/Guitou/UNVEIL (weights under CC BY-NC
 4.0; `MODEL_CARD.md` in this repository is the same model card).
 
 | Release | Files | Used by |
@@ -445,7 +445,7 @@ Module 2 trains unmitigated models from the recipe above.
 
 ```bash
 pip install huggingface_hub
-python -c "from huggingface_hub import snapshot_download; snapshot_download('[HF_REPO_ID]', local_dir='weights')"
+python -c "from huggingface_hub import snapshot_download; snapshot_download('Guitou/UNVEIL', local_dir='weights')"
 python 02_pathology_task_prediction/predict.py --manifest output/manifest.csv \
     --checkpoint weights/task_models/<task>/fold0/model.pt --output predictions.csv
 ```

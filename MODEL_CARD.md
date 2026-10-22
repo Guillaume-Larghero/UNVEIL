@@ -14,7 +14,7 @@ tags:
 Attention-based multiple instance learning (ABMIL) models from Kao TW, Vremenko D, et al.,
 *Demographic Differences in Cancer Tissue Architecture Drive Disparities in Pathology AI
 Performance* (Cancer Cell, in revision). Code and usage: https://github.com/hms-dbmi/UNVEIL.
-Weights: **[HF_REPO_URL]**.
+Weights: https://huggingface.co/Guitou/UNVEIL.
 
 The models take tile embeddings of H&E whole-slide images (WSIs) from one of four public
 pathology foundation models (FMs), not pixels: CHIEF (768-dimensional), UNI (1024), GigaPath
@@ -125,7 +125,7 @@ interchangeable. Mitigation was externally evaluated on DFCI and CPTAC only.
 
 ```bash
 pip install huggingface_hub
-python -c "from huggingface_hub import snapshot_download; snapshot_download('[HF_REPO_ID]', local_dir='weights')"
+python -c "from huggingface_hub import snapshot_download; snapshot_download('Guitou/UNVEIL', local_dir='weights')"
 
 # score slides with a task model (repository module 2)
 python 02_pathology_task_prediction/predict.py --manifest manifest.csv \
