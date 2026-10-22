@@ -439,11 +439,9 @@ The trained models are released on Hugging Face: **[HF_REPO_URL]** (weights unde
 | Release | Files | Used by |
 | --- | --- | --- |
 | Demographic classifiers | one gated attention-MIL classifier per cancer, attribute and slide type (the classifier selected in the paper, with its foundation model named in the file list) | module 1 evaluation; `unveil-tilefilter signal` (module 5) |
-| UNVEIL task models | the attention-MIL task models trained with the module 5 tile filter for the 136 resolved tasks, four fold models each, with the patient-level split lists | `02_pathology_task_prediction/predict.py`; module 3 |
+| UNVEIL task models | the attention-MIL task models trained with the module 5 tile filter, 136 tasks with four fold models each, with the patient-level split lists | `02_pathology_task_prediction/predict.py`; module 3 |
 
-The unmitigated baseline models and the comparator methods' models (reweighting, adversarial
-debiasing, LFR, OptimPreproc, MeCaMIL) are not released; module 2 trains baselines from the
-recipe above.
+Module 2 trains unmitigated models from the recipe above.
 
 ```bash
 pip install huggingface_hub
