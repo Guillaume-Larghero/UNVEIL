@@ -27,11 +27,11 @@ included or modified; obtain the FMs from their authors under their own licenses
 | Group | Contents | Count | Purpose in the study |
 | --- | --- | --- | --- |
 | Demographic classifiers | one gated ABMIL classifier per cancer type × attribute (age group, self-reported race, sex) × slide type (frozen section FS, permanent FFPE section PM); the FM and the cross-validation fold selected in the paper | 31 files for 38 cells | the per-tile demographic signal that the tile filter of module 5 uses |
-| Baseline task models | ABMIL checkpoints per task × FM × fold, trained on TCGA with patient-level four-fold cross-validation, with the fold assignments | [N] | downstream pathology prediction (module 2); the baselines of the fairness, morphology and mitigation analyses (modules 3 to 5) |
+| UNVEIL task models | the ABMIL task models trained with the demographic-signal-aware tile filter (module 5) for the 136 tasks, of the 161 with a significant baseline disparity, that the filter resolved; four fold models per task, with the TCGA patient-level split lists | 544 files for 136 tasks | the mitigated models of Tables S12 to S14; scored with `02_pathology_task_prediction/predict.py` |
 
-**Not released:** the signal-aware (mitigated) task models, which module 5 retrains from the
-baseline recipe and the released classifiers; the comparator fairness methods, which are
-existing published methods; the foundation models.
+**Not released:** the unmitigated baseline task models and the comparator methods' models
+(reweighting, adversarial debiasing, LFR, OptimPreproc, MeCaMIL), which the repository
+retrains from the released recipe; the foundation models.
 
 ### Demographic classifiers
 
@@ -87,12 +87,22 @@ whose per-tile signal the tile filter of module 5 used. The classifier of one ce
 applied to the task models of all four FMs, so it need not share the task model's FM.
 Classifiers of the other FMs in Tables S2 to S4 are not released.
 
-### Baseline task models
+### UNVEIL task models
 
-`task_models/<cancer>_<task>_<FM>_fold<k>.pt` with `task_models/folds.csv` (cohort, cancer,
-patient_id, fold). Tasks are listed in Table S5 of the supplement: tumor detection,
-histologic subtyping, grade, stage and mutation prediction across BRCA, COAD/READ, GBM,
-KIRC, LGG, LUAD and LUSC. **[Shih-Yen: confirm naming and list.]**
+`task_models/<task>/fold<k>/model.pt` (plain state_dict), `args.json` (the training
+arguments, among them `input_feature_length`, `latent_dims` and `dropout`, which build the
+network) and `thresholds.csv` (the decision thresholds the training pipeline wrote);
+`task_models/splits/<task>.csv` gives every TCGA patient of the task with its `test_fold`
+(0 to 3), `label` and `sens_attr` (slide-level for the tumour-detection tasks, which were
+split by slide); `task_models/mapping.csv` has one row per checkpoint: `task` as the paper's
+tables write it, `task_type` (`mut`, `type`, `grade`, `stage`, `detection`), `cancer`,
+`target`, `attribute`, `fm`, `slide_type`, `train_cohort` (TCGA for all), `eval_cohort`
+(TCGA, DFCI or CPTAC), `fold`, `file`, `split_file`.
+
+Of the 136 tasks, 93 are evaluated on the TCGA test folds and 43 on DFCI or CPTAC, where
+the four TCGA-trained fold models score every external patient. Each fold model was
+trained with the filter applied to its training slides only; validation, test and external
+slides are whole. `02_pathology_task_prediction/predict.py` loads these files directly.
 
 ## Architecture and training
 
@@ -106,7 +116,9 @@ KIRC, LGG, LUAD and LUSC. **[Shih-Yen: confirm naming and list.]**
   with White/Black/Asian analyses reported separately in the paper.
 - **Task models:** stratified four-fold cross-validation with all slides of a patient in one
   fold, Adam (1e-4), class-weighted cross-entropy, early stopping after ten epochs without
-  improvement; one model per FM.
+  improvement; one model per FM. The released models were trained with the tile filter of
+  module 5: for each training slide, the 33% of tiles scoring highest on the released
+  demographic classifier's evidence and attention were withheld (at least 64 tiles kept).
 - **Environment:** Python 3.8, PyTorch 2.0.0 (see the repository's `requirements.txt`).
 
 ## Training data
@@ -126,6 +138,8 @@ Demographic classification on the held-out TCGA test set reached mean AUROCs acr
 specificity, PPV, NPV and balanced accuracy: Tables S2 to S4. Baseline task-model AUROCs
 with 95% confidence intervals and the six fairness metrics per demographic contrast: Tables
 S6 to S8; performance stratified by demographic group with subgroup counts: Tables S9 to S11.
+The released task models against their baselines and the comparator methods, AUROC and the
+six fairness metrics with permutation p-values: Tables S12 to S14.
 
 The demographic signal is modest: these classifiers are evidence that FM embeddings carry
 demographic information, not tools for predicting demographics.
@@ -164,9 +178,9 @@ demographic information, not tools for predicting demographics.
 pip install huggingface_hub
 python -c "from huggingface_hub import snapshot_download; snapshot_download('[HF_REPO_ID]', local_dir='weights')"
 
-# score slides with a baseline task model (module 2)
+# score slides with a released task model (module 2)
 python 02_pathology_task_prediction/predict.py --manifest manifest.csv \
-    --checkpoint weights/task_models/BRCA_PIK3CA_CHIEF_fold0.pt --output predictions.csv
+    --checkpoint weights/task_models/detection_COAD_READ_Age_GIGAPATH_FS/fold0/model.pt --output predictions.csv
 
 # per-tile demographic signal from a demographic classifier (module 5)
 unveil-tilefilter signal --features-dir features/ --model-code 01_demographic_classifier \

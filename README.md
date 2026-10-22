@@ -439,18 +439,17 @@ The trained models are released on Hugging Face: **[HF_REPO_URL]** (weights unde
 | Release | Files | Used by |
 | --- | --- | --- |
 | Demographic classifiers | one gated attention-MIL classifier per cancer, attribute and slide type (the classifier selected in the paper, with its foundation model named in the file list) | module 1 evaluation; `unveil-tilefilter signal` (module 5) |
-| Baseline task models | attention-MIL checkpoints per task, foundation model and fold, with the patient-level fold assignments | `02_pathology_task_prediction/predict.py`; modules 3 and 4 |
+| UNVEIL task models | the attention-MIL task models trained with the module 5 tile filter for the 136 resolved tasks, four fold models each, with the patient-level split lists | `02_pathology_task_prediction/predict.py`; module 3 |
 
-The signal-aware task models are not released; module 5 retrains them from the baseline
-recipe and the released classifiers. The comparator methods (reweighting, adversarial
-debiasing, LFR, OptimPreproc, MeCaMIL) are existing published methods and are not part of
-this release.
+The unmitigated baseline models and the comparator methods' models (reweighting, adversarial
+debiasing, LFR, OptimPreproc, MeCaMIL) are not released; module 2 trains baselines from the
+recipe above.
 
 ```bash
 pip install huggingface_hub
 python -c "from huggingface_hub import snapshot_download; snapshot_download('[HF_REPO_ID]', local_dir='weights')"
 python 02_pathology_task_prediction/predict.py --manifest output/manifest.csv \
-    --checkpoint weights/task_models/<cancer>_<task>_<fm>_fold0.pt --output predictions.csv
+    --checkpoint weights/task_models/<task>/fold0/model.pt --output predictions.csv
 ```
 
 ## License
